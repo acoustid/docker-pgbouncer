@@ -37,6 +37,10 @@ if [ -n "$DATABASE_URL" ]; then
   DB_NAME="$(echo $url | grep / | cut -d/ -f2-)"
 fi
 
+if [ -n "$DB_PASSWORD_FILE" ]; then
+  DB_PASSWORD="$(cat $DB_PASSWORD_FILE)"
+fi
+
 # Write the password with MD5 encryption, to avoid printing it during startup.
 # Notice that `docker inspect` will show unencrypted env variables.
 if [ -n "$DB_USER" -a -n "$DB_PASSWORD" ] && ! grep -q "^\"$DB_USER\"" ${PG_CONFIG_DIR}/userlist.txt; then
