@@ -41,12 +41,24 @@ if [ -n "$DB_PASSWORD_FILE" ]; then
   DB_PASSWORD="$(cat $DB_PASSWORD_FILE)"
 fi
 
+ADMIN_USER=postgres
+
+if [ -n "$ADMIN_PASSWORD_FILE" ]; then
+  ADMIN_PASSWORD="$(cat $ADMIN_PASSWORD_FILE)"
+fi
+
 # Write the password with MD5 encryption, to avoid printing it during startup.
 # Notice that `docker inspect` will show unencrypted env variables.
 if [ -n "$DB_USER" -a -n "$DB_PASSWORD" ] && ! grep -q "^\"$DB_USER\"" ${PG_CONFIG_DIR}/userlist.txt; then
   encrypted_pass="md5$(echo -n "$DB_PASSWORD$DB_USER" | md5sum | cut -f 1 -d ' ')"
   echo "\"$DB_USER\" \"$encrypted_pass\"" >> ${PG_CONFIG_DIR}/userlist.txt
-  echo "Wrote authentication credentials to ${PG_CONFIG_DIR}/userlist.txt"
+  echo "Wrote user authentication credentials to ${PG_CONFIG_DIR}/userlist.txt"
+fi
+
+if [ -n "$ADMIN_USER" -a -n "$ADMIN_PASSWORD" ] && ! grep -q "^\"$ADMIN_USER\"" ${PG_CONFIG_DIR}/userlist.txt; then
+  encrypted_pass="md5$(echo -n "$ADMIN_PASSWORD$ADMIN_USER" | md5sum | cut -f 1 -d ' ')"
+  echo "\"$ADMIN_USER\" \"$encrypted_pass\"" >> ${PG_CONFIG_DIR}/userlist.txt
+  echo "Wrote admin authentication credentials to ${PG_CONFIG_DIR}/userlist.txt"
 fi
 
 if [ ! -f ${PG_CONFIG_DIR}/pgbouncer.ini ]; then
